@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit Tugas · Daftar Tugas Harian</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container narrow">
+    <header class="page-header">
+      <p class="eyebrow">PENGELOLA TUGAS</p>
+      <h1>Edit Tugas</h1>
+      <p class="subtitle">Perbarui detail tugas Anda.</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="messages" aria-live="polite">
+          {% for category, message in messages %}
+            <p class="message {{ category }}">{{ message }}</p>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    <section class="panel">
+      <form method="post" action="{{ url_for('update_task', task_id=task.id) }}" class="task-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="title">Judul tugas <span aria-hidden="true">*</span></label>
+        <input id="title" name="title" type="text" maxlength="200" required value="{{ task.title }}">
+
+        <label for="description">Deskripsi</label>
+        <textarea id="description" name="description" rows="4">{{ task.description }}</textarea>
+
+        <label for="due_date">Tanggal tenggat</label>
+        <input id="due_date" name="due_date" type="date" value="{{ task.due_date.isoformat() if task.due_date else '' }}">
+        <div class="form-actions">
+          <button type="submit" class="button primary">Simpan perubahan</button>
+          <a class="button secondary" href="{{ url_for('index') }}">Kembali</a>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

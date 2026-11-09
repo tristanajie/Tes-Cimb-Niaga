@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daftar Tugas Harian</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <header class="page-header">
+      <p class="eyebrow">PENGELOLA TUGAS</p>
+      <h1>Daftar Tugas Harian</h1>
+      <p class="subtitle">Catat, atur, dan selesaikan tugas Anda.</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="messages" aria-live="polite">
+          {% for category, message in messages %}
+            <p class="message {{ category }}">{{ message }}</p>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    <section class="panel">
+      <h2>Tambah tugas</h2>
+      <form method="post" action="{{ url_for('create_task') }}" class="task-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="title">Judul tugas <span aria-hidden="true">*</span></label>
+        <input id="title" name="title" type="text" maxlength="200" required placeholder="Contoh: Menyusun laporan harian">
+
+        <label for="description">Deskripsi</label>
+        <textarea id="description" name="description" rows="3" placeholder="Detail tugas (opsional)"></textarea>
+
+        <label for="due_date">Tanggal tenggat</label>
+        <input id="due_date" name="due_date" type="date">
+        <button type="submit" class="button primary">Tambah tugas</button>
+      </form>
+    </section>
+
+    <section class="list-section">
+      <div class="list-heading">
+        <div>
+          <h2>Tugas Anda</h2>
+          <p class="muted">{{ tasks|length }} tugas ditampilkan</p>
+        </div>
+        <nav class="filters" aria-label="Filter tugas">
+          <a class="{{ 'selected' if status_filter == 'all' }}" href="{{ url_for('index', status='all') }}">Semua</a>
+          <a class="{{ 'selected' if status_filter == 'pending' }}" href="{{ url_for('index', status='pending') }}">Belum selesai</a>
+          <a class="{{ 'selected' if status_filter == 'completed' }}" href="{{ url_for('index', status='completed') }}">Selesai</a>
+        </nav>
+      </div>
+
+      {% if tasks %}
+        <div class="task-list">
+          {% for task in tasks %}
+            <article class="task-card {{ 'is-completed' if task.is_completed }}">
+              <div class="task-content">
+                <h3>{{ task.title }}</h3>
+                {% if task.description %}<p class="task-description">{{ task.description }}</p>{% endif %}
+                <p class="task-meta">
+                  {% if task.due_date %}Tenggat: {{ task.due_date.strftime('%d-%m-%Y') }}{% else %}Tanpa tenggat{% endif %}
+                  · Dibuat {{ task.created_at.strftime('%d-%m-%Y %H:%M') }}
+                </p>
+              </div>
+              <div class="task-actions">
+                <form method="post" action="{{ url_for('toggle_task', task_id=task.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="button secondary" type="submit">{{ 'Batalkan' if task.is_completed else 'Selesaikan' }}</button>
+                </form>
+                <a class="button secondary" href="{{ url_for('edit_task', task_id=task.id) }}">Edit</a>
+                <form method="post" action="{{ url_for('delete_task', task_id=task.id) }}" onsubmit="return confirm('Hapus tugas ini?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="button danger" type="submit">Hapus</button>
+                </form>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <h3>Belum ada tugas di sini</h3>
+          <p>Tambahkan tugas baru atau pilih filter yang lain.</p>
+        </div>
+      {% endif %}
+    </section>
+    <footer>Modul Daftar Tugas Harian · Flask &amp; MySQL</footer>
+  </main>
+</body>
+</html>
